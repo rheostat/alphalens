@@ -155,14 +155,14 @@ def quantize_factor(factor_data,
                 return pd.concat([pos_bins, neg_bins]).sort_index()
         except Exception as e:
             if _no_raise:
-                return pd.Series(index=x.index)
+                return pd.Series(index=x.index, dtype=float)
             raise e
 
     grouper = [factor_data.index.get_level_values('date')]
     if by_group:
         grouper.append('group')
 
-    factor_quantile = factor_data.groupby(grouper)['factor'] \
+    factor_quantile = factor_data.groupby(grouper, group_keys=False)['factor'] \
         .apply(quantile_calc, quantiles, bins, zero_aware, no_raise)
     factor_quantile.name = 'factor_quantile'
 
@@ -315,7 +315,7 @@ def compute_forward_returns(factor,
             period_len = diff_custom_calendar_timedeltas(start, end, freq)
             days_diffs.append(period_len.components.days)
 
-        delta_days = period_len.components.days - mode(days_diffs).mode[0]
+        delta_days = period_len.components.days - mode(days_diffs, keepdims=True).mode[0]
         period_len -= pd.Timedelta(days=delta_days)
         label = timedelta_to_string(period_len)
 
@@ -337,8 +337,7 @@ def compute_forward_returns(factor,
     df = df[column_list]
 
     df.index.levels[0].freq = freq
-    df.index.levels[0].name = "date"
-    df.index.levels[1].name = "asset"
+    df.index.rename(['date', 'asset'], inplace=True)
 
     return df
 

@@ -195,7 +195,7 @@ def factor_weights(factor_data,
     if group_adjust:
         grouper.append('group')
 
-    weights = factor_data.groupby(grouper)['factor'] \
+    weights = factor_data.groupby(grouper, group_keys=False)['factor'] \
         .apply(to_weights, demeaned, equal_weight)
 
     if group_adjust:
@@ -422,7 +422,7 @@ def cumulative_returns(returns, period, freq=None):
             next = utils.add_custom_calendar_timedelta(next, period, freq)
             # make sure to fetch the next available entry after 'period'
             try:
-                i = trades_idx.get_loc(next, method='bfill')
+                i = trades_idx.get_loc(next)
                 next = trades_idx[i]
             except KeyError:
                 break
